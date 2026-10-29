@@ -93,6 +93,8 @@ test('helpers: days of Paris, tidy texts, centre without bbox', () => {
   assert.equal(day(null), null);
   assert.equal(tidy('  RUE  DES CAPITOULS '), 'Rue des capitouls');
   assert.equal(tidy('Rue Pollet '), 'Rue Pollet');
+  assert.equal(tidy('146 - 144 rue de Vaugirard.'), '146 - 144 rue de Vaugirard');
+  assert.equal(tidy('rue de Vaugirard 75006_'), 'rue de Vaugirard 75006');
   assert.deepEqual(
     centre({
       geometry: {

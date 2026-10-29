@@ -56,8 +56,10 @@ export function instant(value) {
 
 /** Trims, collapses spaces; a text in capitals gets lower case words, first letter up. */
 export function tidy(value) {
+  // Paris ends some streets with "." or "_" ("rue de Vaugirard 75006_").
   const text = String(value ?? '')
     .replace(/\s+/g, ' ')
+    .replace(/[\s._,;]+$/, '')
     .trim();
   if (text && text === text.toUpperCase() && /\p{Lu}{3}/u.test(text)) {
     const lower = text.toLowerCase();
