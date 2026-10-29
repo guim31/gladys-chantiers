@@ -32,15 +32,18 @@ pushing.
 
 ```
 index.js                          SDK wiring only: handlers registered before connect()
-src/devices/index.js              registry of the device blueprints + dispatch helpers
-src/devices/<type>.js             one device type per file (buildDevice, onPoll, onSetValue...)
-src/scenes.js                     scene action handlers (manifest `scene_actions`)
-src/widgets.js                    dashboard widget handlers (manifest `widgets`)
+src/app.js                        registers every SDK handler on the service (tests use it too)
+src/service.js                    runtime: readings (twice a day), hourly pass, zones, states, triggers
+src/sources.js                    one adapter per city portal → { id, title, street, place, impact, start, end, lat, lon }
+src/devices.js                    the zone device (around the house / a street) and its states
+src/scenes.js                     scene action `worksites_summary`
+src/widgets.js                    dashboard widget `worksites` (card-list)
+src/messages.js                   every text sent from the container, in en/fr/de/es
 src/config.js                     DEFAULT_CONFIG (mirrors the manifest defaults) + normalization
-src/weather.js                    example driver (Open-Meteo)
-gladys-assistant-integration.json manifest: name, config_schema, actions, image...
-docs/en.md, docs/fr.md            user documentation, re-hosted by Gladys (mandatory)
-test/                             node --test, against the SDK's fake Gladys (integration-sdk/testing)
+src/http.js                       fetch with timeout and size cap
+gladys-assistant-integration.json manifest: name, config_schema, actions, triggers, widget...
+docs/{en,fr,de,es}.md             user documentation, re-hosted by Gladys (mandatory)
+test/                             node --test, against the SDK's fake Gladys and the real portal answers
 .github/scripts/release.mjs       release helpers (manifest bump, changelog), tested in test/
 ```
 
@@ -250,3 +253,30 @@ long, et sur un « Sie »/« Ihr… » de politesse en allemand. Le store exige 
 - Docs `en`, `fr`, `de`, `es` avec les mêmes sections.
 - Chauffe, ouverture, sécurité : ne rien rendre pilotable « comme un thermostat » ou par un assistant
   vocal quand une erreur serait dangereuse (leçon d'OctoPrint).
+
+## Chantiers : sources et choix (29/10/2026)
+
+- **Sources** (sans clé, vérifiées le 29/10/2026) : Paris `chantiers-perturbants`, Toulouse
+  `chantiers-en-cours`, Rennes `travaux_6_jours`, Tours `travaux_lineaire_tmvl`, Angers `info-travaux`
+  (Opendatasoft v2.1, export JSON, `select` réduit) ; Lyon par le WFS de data.grandlyon.com (le
+  `datapusher` `all.json` n'a pas de géométrie : centre pris dans la `bbox` de chaque feature). Rien de
+  publié et à jour pour Bordeaux, Nantes, Strasbourg (« programmation » = planning pluriannuel),
+  Montpellier, Lille.
+- Filtres : Toulouse sans les chantiers « Occupation du trottoir » seuls, Rennes sans « Impact nul »,
+  Tours sans « Sans impact », Angers sans `traffic: normal`, Lyon sans « Chantier terminé ». Un
+  chantier qui finit avant de commencer (Paris CP003128, deux à Lyon) est écarté : on ne sait pas
+  quelle date est fausse.
+- Dates : jours du fuseau de Gladys (`TZ`) ; Toulouse et Rennes publient des dates à minuit UTC
+  (`…T00:00:00+00:00`) qui sont des jours, pas des instants : seule la partie date est lue. Angers
+  publie de vraies heures.
+- **Zones** = appareils (type `zone`) : `home` et `street-<terme replié>` (minuscules, sans accents,
+  ponctuation → tiret). Le terme est dans les `params` : le renommer crée un nouvel appareil.
+- Lecture deux fois par jour (`READ_EVERY_MS`), passe horaire sans réseau (`TICK_MS`) pour les débuts
+  et fins de chantier ; `setInterval` maison, `should_poll: false`.
+- Déclencheurs : première passe = état de référence, rien n'est tiré ; un changement de réglages ou de
+  maison remet la référence à zéro ; une ville lue pour la première fois (portail en panne au
+  démarrage) n'apporte pas de « nouveaux » chantiers. Pas de persistance : un redémarrage perd ce
+  qui s'est passé entre-temps (dit dans la doc).
+- Widget en `card-list` `list` : 8 lignes au plus (plafond du cœur), pas 10.
+- `counter-sensor/integer` : le SDK n'a pas `DEVICE_FEATURE_TYPES.COUNTER_SENSOR`, le type est
+  `SENSOR.INTEGER` (`integer`).
