@@ -144,7 +144,9 @@ obras actualizado el 29/10/2026. Abra una issue si la suya lo hace.
 - Rennes solo publica los próximos 6 días, Tours solo fechas previstas. Una obra con las fechas
   invertidas en los datos se descarta.
 - El punto de una obra es el centro de su forma: en una calle larga, la distancia es aproximada.
-- Tras un reinicio, los disparadores parten de lo que hay: lo ocurrido entretanto no se dispara.
+- Tras un reinicio o un cambio de ajustes o de la ubicación de la casa, los disparadores parten de lo
+  que hay: lo ocurrido entretanto no se dispara. Como máximo 50 eventos por pasada, sin reintento si
+  Gladys los rechaza. Una obra que un portal retira y vuelve a publicar se ve terminada y luego iniciada.
 
 ## Créditos
 

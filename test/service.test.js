@@ -9,6 +9,7 @@ import assert from 'node:assert/strict';
 import { validateWidgetContent } from '@gladysassistant/integration-sdk';
 import { createFakeGladys } from '@gladysassistant/integration-sdk/testing';
 import { registerHandlers } from '../src/app.js';
+import { distanceText } from '../src/messages.js';
 import { READ_EVERY_MS, TICK_MS, TRIGGERS } from '../src/service.js';
 import {
   FIXTURE_TIME,
@@ -311,4 +312,36 @@ test('a city down at start: nothing published, tried again 10 minutes later', as
   world.clock.advance(11 * 60 * 1000);
   await world.service.refresh();
   assert.ok(world.service.zoneView({ kind: 'home' }));
+});
+
+test('a zone deleted then added again days later fires nothing old', async (t) => {
+  const world = await createWorld({
+    config: { cities: ['paris'], home_radius: '0', streets: 'Rue' },
+  });
+  t.after(() => world.app.stop());
+  const zone = await create(world, 'Rue');
+  await tick(world);
+  await world.fake.deviceDeleted(zone);
+  for (let i = 0; i < 72; i += 1) {
+    await tick(world);
+  }
+  await world.fake.deviceCreated(zone);
+  await tick(world);
+  assert.deepEqual(world.fake.sceneEvents, []);
+});
+
+test('a zone just added has its reference at once: a start in the next hour fires', async (t) => {
+  const world = await createWorld();
+  t.after(() => world.app.stop());
+  world.clock.time = Date.parse('2026-11-01T23:30:00+01:00');
+  await create(world, 'Avenue Esquirol');
+  await tick(world);
+  assert.equal(eventsOf(world, TRIGGERS.STARTED).length, 1);
+});
+
+test('distances: metres, then kilometres with a decimal comma', () => {
+  assert.equal(distanceText(994, 'fr'), '990 m');
+  assert.equal(distanceText(997, 'fr'), '1 km');
+  assert.equal(distanceText(1250, 'fr'), '1,3 km');
+  assert.equal(distanceText(1250, 'en'), '1.3 km');
 });

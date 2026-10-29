@@ -146,8 +146,10 @@ chantiers à jour le 29/10/2026. Ouvrez une issue si la vôtre le fait.
 - Rennes ne publie que les 6 prochains jours, Tours que des dates prévisionnelles. Un chantier dont
   les dates sont inversées dans les données est écarté.
 - Le point d'un chantier est le centre de sa forme : dans une longue rue, la distance est approchée.
-- Après un redémarrage, les déclencheurs repartent de ce qui est là : ce qui s'est passé entre-temps
-  n'est pas déclenché.
+- Après un redémarrage, un changement de réglages ou de position de la maison, les déclencheurs
+  repartent de ce qui est là : ce qui s'est passé entre-temps n'est pas déclenché. 50 événements au
+  plus par passe, sans nouvel essai si Gladys les refuse. Un chantier qu'un portail retire puis
+  republie est vu terminé, puis commencé.
 
 ## Crédits
 

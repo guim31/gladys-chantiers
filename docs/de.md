@@ -142,8 +142,10 @@ keinen aktuellen Baustellen-Datensatz. Öffne ein Issue, wenn deine es tut.
 - Rennes veröffentlicht nur die nächsten 6 Tage, Tours nur geplante Daten. Eine Baustelle mit
   vertauschten Daten wird ausgelassen.
 - Der Punkt einer Baustelle ist die Mitte ihrer Form: In einer langen Straße ist die Entfernung ungefähr.
-- Nach einem Neustart beginnen die Auslöser bei dem, was da ist: Was in der Zwischenzeit passiert
-  ist, wird nicht ausgelöst.
+- Nach einem Neustart oder einer Änderung der Einstellungen oder des Hausstandorts beginnen die
+  Auslöser bei dem, was da ist: Was in der Zwischenzeit passiert ist, wird nicht ausgelöst. Höchstens
+  50 Ereignisse pro Durchlauf, ohne neuen Versuch, wenn Gladys sie ablehnt. Eine Baustelle, die ein
+  Portal entfernt und wieder veröffentlicht, gilt als beendet und dann als begonnen.
 
 ## Danksagung
 

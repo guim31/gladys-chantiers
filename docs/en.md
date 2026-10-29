@@ -141,7 +141,7 @@ worksite dataset on 2026-10-29. Open an issue if yours does.
 - Rennes only publishes the next 6 days; Tours only planned dates. A worksite whose dates are
   inverted in the data is left out.
 - The point of a worksite is the centre of its shape: on a long street, the distance is approximate.
-- After a restart, the triggers start again from what is there: what happened meanwhile is not fired.
+- After a restart, a change of settings or of the house location, the triggers start again from what is there: what happened meanwhile is not fired. At most 50 events per pass, not retried if Gladys refuses them. A worksite that a portal drops then publishes again is seen as ended, then started.
 
 ## Credits
 

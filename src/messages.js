@@ -101,7 +101,7 @@ export const TEXT = {
     zoneSome: ({ zone, count, first }) =>
       `${zone}: ${count} ${plural(count, 'laufende Baustelle', 'laufende Baustellen')}, darunter ${first}.`,
     zoneNext: ({ count }) => `${count} geplant.`,
-    noData: 'Die Baustellen sind noch nicht gelesen.',
+    noData: 'Die Baustellen wurden noch nicht abgerufen.',
     pickZone: 'Füge eine Zone im Tab „Entdecken“ der Integration hinzu und wähle sie hier.',
     gone: 'Diese Zone wird nicht mehr verfolgt.',
     noZone: 'Keine Zone wird verfolgt: füge eine im Tab „Entdecken“ der Integration hinzu.',
@@ -151,8 +151,8 @@ export const REPORTS = {
   de: {
     noCity: 'Keine Stadt gewählt: kreuze oben eine oder mehrere Städte an und speichere.',
     city: ({ name, active, upcoming }) => `■ ${name}: ${active} laufend, ${upcoming} geplant`,
-    read: ({ hours }) => `Letzte Abfrage vor ${hours} h.`,
-    waiting: 'Noch nicht abgefragt.',
+    read: ({ hours }) => `Zuletzt abgerufen vor ${hours} h.`,
+    waiting: 'Noch nicht abgerufen.',
     error: ({ error }) => `Letzter Fehler: ${error}`,
     noHouse: 'Rund ums Haus: kein Haus mit Standort in Gladys.',
     noZone: 'Keine Zone: wähle einen Umkreis ums Haus oder gib Straßen ein und speichere.',
@@ -163,7 +163,7 @@ export const REPORTS = {
     city: ({ name, active, upcoming }) =>
       `■ ${name}: ${active} en curso, ${upcoming} prevista${upcoming === 1 ? '' : 's'}`,
     read: ({ hours }) => `Última lectura hace ${hours} h.`,
-    waiting: 'Aún no leído.',
+    waiting: 'Todavía no se ha leído.',
     error: ({ error }) => `Último error: ${error}`,
     noHouse: 'Alrededor de la casa: ninguna casa localizada en Gladys.',
     noZone: 'Ninguna zona: elija un radio alrededor de la casa o escriba calles y guarde.',
@@ -209,8 +209,9 @@ export function shortDate(ms, language) {
 
 /** "350 m", "1.2 km" (with a comma in French, German and Spanish). */
 export function distanceText(metres, language) {
-  if (metres < 1000) {
-    return `${Math.round(metres / 10) * 10} m`;
+  const rounded = Math.round(metres / 10) * 10;
+  if (rounded < 1000) {
+    return `${rounded} m`;
   }
   const km = (Math.round(metres / 100) / 10).toString();
   return `${language === 'en' ? km : km.replace('.', ',')} km`;

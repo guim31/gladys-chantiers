@@ -68,7 +68,7 @@ export function registerHandlers(gladys, options = {}) {
 
   // The widget shows the names given in Gladys.
   gladys.onDeviceUpdated(whenReady(() => service.refreshWidget()));
-  gladys.onDeviceDeleted(whenReady(() => service.refreshWidget()));
+  gladys.onDeviceDeleted(whenReady((device) => service.forget(device)));
 
   gladys.onConfigUpdated(whenReady((newConfig) => service.reconfigure(normalizeConfig(newConfig))));
 

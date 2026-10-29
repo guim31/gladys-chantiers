@@ -19,6 +19,10 @@ const logger = createLogger({ name: 'chantiers' });
 
 // The portals publish once a day: read twice a day at most.
 export const READ_EVERY_MS = 12 * 3600 * 1000;
+// An hourly pass a little early still reads at the 12th hour.
+const READ_MARGIN_MS = 5 * 60 * 1000;
+// Trigger events fired in one pass, at most.
+export const MAX_EVENTS = 50;
 // A failed read is tried again after this, the known worksites kept.
 export const RETRY_MS = 3600 * 1000;
 // A city never read: tried again after this.
@@ -107,6 +111,9 @@ export class Worksites {
   }
 
   async reconfigure(config) {
+    // A pass still running with the old settings would write its snapshots
+    // after the clear below: let it end first.
+    await this.refreshing;
     this.config = config;
     // Another radius or other cities move worksites in and out of the zones:
     // that is no news, the triggers start again from what is there.
@@ -319,7 +326,18 @@ export class Worksites {
     // The SDK forgot what was published before the creation (dropped by Gladys).
     if (view) {
       await this.publish(zoneStates(this.gladys, view, this.config.language));
+      // The reference of the triggers, now: a worksite starting before the
+      // next hourly pass is news.
+      if (!this.snapshots.has(device.external_id)) {
+        this.zoneEvents({ deviceId: device.external_id, name: device.name, zone }, view);
+      }
     }
+    this.refreshWidget();
+  }
+
+  /** A device deleted in Gladys: its triggers start again from scratch if it comes back. */
+  forget(device) {
+    this.snapshots.delete(device?.external_id);
     this.refreshWidget();
   }
 
@@ -345,13 +363,24 @@ export class Worksites {
   }
 
   async refreshAll(forceDiscovery) {
+    if (this.stopped) {
+      return;
+    }
     for (const key of this.config.cities) {
       await this.read(this.city(key));
     }
     await this.publishDiscovered({ force: forceDiscovery });
     const states = [];
     const events = [];
-    for (const entry of this.watched()) {
+    const watched = this.watched();
+    // A zone no longer added keeps no reference: added again later, it starts afresh.
+    const ids = new Set(watched.map((entry) => entry.deviceId));
+    for (const id of this.snapshots.keys()) {
+      if (!ids.has(id)) {
+        this.snapshots.delete(id);
+      }
+    }
+    for (const entry of watched) {
       const view = this.zoneView(entry.zone);
       if (!view) {
         continue;
@@ -360,7 +389,12 @@ export class Worksites {
       events.push(...this.zoneEvents(entry, view));
     }
     await this.publish(states);
-    for (const { key, data } of events) {
+    // A broad street search can start hundreds of worksites on the same day;
+    // the core takes 300 events a minute: the first ones only.
+    if (events.length > MAX_EVENTS) {
+      logger.debug(`${events.length} trigger events, only the first ${MAX_EVENTS} fired`);
+    }
+    for (const { key, data } of events.slice(0, MAX_EVENTS)) {
       await this.fire(key, data);
     }
   }
@@ -368,7 +402,7 @@ export class Worksites {
   /** Reads the worksites of a city when due; a failure keeps the known ones. */
   async read(city) {
     const now = this.now();
-    if (city.worksites && now - city.readAt < READ_EVERY_MS) {
+    if (city.worksites && now - city.readAt < READ_EVERY_MS - READ_MARGIN_MS) {
       return;
     }
     if (city.retryAt !== null && now < city.retryAt) {
