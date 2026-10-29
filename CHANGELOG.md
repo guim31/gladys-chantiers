@@ -10,6 +10,8 @@ the notes of the version's GitHub Release.
 
 ## [Unreleased]
 
+## [1.0.0] - 2026-10-29
+
 ### Added
 
 - Worksites that disrupt traffic, from the open data of Paris, the Lyon
@@ -23,3 +25,6 @@ the notes of the version's GitHub Release.
 - Dashboard widget: the worksites of your zones, nearest first, then the
   upcoming ones.
 - English, French, German and Spanish.
+
+[Unreleased]: https://github.com/guim31/gladys-chantiers/compare/v1.0.0...HEAD
+[1.0.0]: https://github.com/guim31/gladys-chantiers/releases/tag/v1.0.0
