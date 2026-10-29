@@ -1,61 +1,150 @@
-# Demo Devices Template
+# Worksites
 
-This is the user documentation of the integration. Gladys re-hosts this file
-and shows a permanent **Documentation** link to it in the Configuration screen
-(in the user's language, with English as the fallback) — it is when
-configuring that the user needs it most. Keep the short onboarding hints in
-the `section` blocks of the manifest `config_schema`; put the long
-step-by-step (screenshots, troubleshooting…) here.
+The **roadworks that disrupt traffic** near you, read from the open data of French cities: Paris,
+Lyon metropolitan area, Toulouse Métropole, Rennes Métropole, Tours Métropole and Angers. Around your
+house or in the streets you follow: how many worksites are in progress, the nearest one, the next
+one to start. **No account, no key.**
+
+Unofficial integration, not affiliated with the cities. The sources were checked live on
+2026-10-29; feedback from users of each city is welcome. Different from the Bison Futé integration,
+which covers events on the national road network: here, the local worksites published by the cities.
 
 ## What you get
 
-Six demo devices show up after installation: a weather station (real data
-from Open-Meteo), a switch, a dimmable light, a smart plug with power
-metering, a motion sensor and a camera.
+- An **"Around the house" zone**: the worksites within 200 m to 2 km of the house located in Gladys.
+- One **zone per street** you type ("Rue de Vaugirard", "Avenue Esquirol"), searched in every city
+  you ticked, accents and case ignored.
+- For each zone, a device with: the number of worksites in progress, the number announced, the
+  nearest one (or, in a street, the one in progress) and the next one to start, each in one line:
+  work, street, distance, end date, effect on traffic.
+- A **widget** "Worksites": the worksites of your zones, nearest first, then the upcoming ones.
+- Three **scene triggers**: a worksite is announced, starts, or ends in a zone.
+- A **scene action**: the worksites of your zones in one sentence, ready to send or to say.
+
+## Requirements
+
+- Gladys Assistant **5.3.0** or later.
+- Internet access from Gladys: the data comes from the open data portals of the cities.
+- No account, no API key. For the "Around the house" zone, a house located in Gladys
+  (Settings → Houses): the integration asks for access to its location at install.
+
+## Installation
+
+1. In Gladys, open **Integrations → Install from GitHub**.
+2. Paste the address `https://github.com/guim31/gladys-chantiers` and confirm.
+3. Open the integration once installed: the **Configuration** tab shows.
 
 ## Configuration
 
-1. Open the **Configuration** tab of the integration.
-2. Set the **latitude** and **longitude** the demo weather station should
-   observe (they default to Paris), and pick your temperature unit.
-   The **refresh interval** sets how often the weather station and the
-   plug's power are read: every 5 minutes by default, every minute at most.
-3. Save: the devices appear in the **Discovery** tab, ready to be added.
+### Settings
 
-The **Prefer the local connection** toggle drives the demo plug: it reports
-the channel it actually uses as a badge (local or cloud), with an orange dot
-when it runs degraded (local refused, cloud fallback).
+| Setting                        | Effect                                                                     |
+| ------------------------------ | -------------------------------------------------------------------------- |
+| Cities                         | The cities whose worksites are read. Tick only yours.                      |
+| Around the house               | Radius of the zone around the house (200 m, 500 m, 1 km, 2 km), or off.    |
+| Streets to follow              | Part of the name of each street, separated by commas (10 at most).         |
+| Language of names and messages | Language of the feature names, the sentences and the dates (French first). |
 
-## Actions
+The worksites themselves (nature of the work, street, effect on traffic) stay in French, as the
+cities publish them.
 
-- **Test the weather provider** — performs a live request to Open-Meteo and
-  shows the current temperature and humidity under the button.
-- **Identify a device** — pick one of your devices in the list and it will
-  signal itself (the demo light "blinks" in the logs).
+### Add zones
 
-## Scenes
+1. Tick your cities, choose a radius and/or type streets, then **save**.
+2. Open the **Discover** tab: one device per zone ("Chantiers · Autour de la maison",
+   "Chantiers · Rue de Vaugirard").
+3. Add the ones you want to Gladys. Their states appear at once.
 
-The integration adds its own cards to the scene editor (Gladys 5.1 or
-later), under the **Integrations** category:
+A street search is a part of the name: "Vaugirard" finds "rue de Vaugirard" and every street whose
+name holds it. Three letters at least. Changing the search later offers new zones; the zones
+already added stay.
 
-- **Motion detected** (trigger) — starts the scene when a demo motion sensor
-  sees something move. Optionally pick the sensor and what moved (person,
-  animal); left empty, any detection matches. The following actions can
-  read what moved with `{{triggerEvent.data.target}}`.
-- **Identify a device** (action) — makes the chosen device signal itself.
-  It returns whether the device could signal itself, so the following
-  actions can depend on it.
+### Check
 
-## Dashboard
+The **Status** action of the Configuration tab lists the cities read, the worksites in progress and
+announced in each, the last reading, the last error, and the zones added.
 
-Add the **Demo status** widget to a dashboard: it shows the live
-temperature of the weather station and the power of the office plug, the
-connection the plug currently uses (orange when degraded) and the observed
-location. Its **Identify the light** button makes the demo light signal
-itself.
+## Devices
+
+| Feature                             | Type    | Content                                             |
+| ----------------------------------- | ------- | --------------------------------------------------- |
+| Worksites in progress               | counter | Worksites started and not over                      |
+| Upcoming worksites                  | counter | Worksites announced, not started yet                |
+| Nearest worksite (around the house) | text    | The nearest worksite in progress, with its distance |
+| Worksite in progress (street)       | text    | The worksite in progress that ends last             |
+| Next worksite                       | text    | The next worksite to start, with its first day      |
+
+Example: `Réfections de tranchées · Avenue Esquirol · 290 m · jusqu'au 6 nov. · Circulation interdite`.
+Without any worksite, the text says "No worksite" (in the chosen language).
+
+## Dashboard widget
+
+**Worksites**: the worksites of your zones (all of them, or the ones picked), 8 at most. Those in
+progress come first, nearest first, with their distance as a badge; then the upcoming ones, marked
+"Upcoming". A tap on a row shows the details: work, street, town, effect, dates, distance, source.
+Settings: the zones shown, show the upcoming worksites, show the distance.
+
+## Scene triggers
+
+| Trigger            | When                                                                   |
+| ------------------ | ---------------------------------------------------------------------- |
+| Worksite announced | A new worksite, not started yet, appears in a zone (new reading)       |
+| Worksite started   | A worksite of a zone reaches its first day, or appears already started |
+| Worksite ended     | A worksite of a zone is past its planned end, or no longer published   |
+
+Each one can be limited to some zones. Variables: zone, work, street, town, source, effect on
+traffic, start, planned end, distance from the house (0 for a street). Nothing fires at start nor
+when the settings change: only what happens afterwards.
+
+## Scene action
+
+**Worksites in one sentence**: for each zone chosen (all of them by default), the number of
+worksites in progress, the nearest one and the number announced. Outputs: the sentence, the number
+of worksites in progress and the number announced, for a "Continue only if" step.
+
+## Scene examples
+
+- Every morning at 7:30, send the "Worksites in one sentence" to your phone.
+- When a worksite is announced around the house, send a message with its street and its first day.
+- When a worksite ends in your street, say it on the speaker of the living room.
+
+## Data and refresh
+
+Each city is read **twice a day** (the portals update once a day at most), in one request. Every
+hour, without reading anything, the worksites are sorted again against the clock: those whose first
+day has come start, those past their end are over. A city that does not answer keeps its last
+worksites and is tried again an hour later.
+
+| City               | Dataset                                                            |
+| ------------------ | ------------------------------------------------------------------ |
+| Paris              | `chantiers-perturbants` (opendata.paris.fr), the disruptive ones   |
+| Lyon metropolitan  | `pvochantierperturbant` (data.grandlyon.com), disruptive worksites |
+| Toulouse Métropole | `chantiers-en-cours` (data.toulouse-metropole.fr), sidewalks aside |
+| Rennes Métropole   | `travaux_6_jours` (data.rennesmetropole.fr), the next 6 days only  |
+| Tours Métropole    | `travaux_lineaire_tmvl` (data.tours-metropole.fr), planned dates   |
+| Angers             | `info-travaux` (data.angers.fr), with hours                        |
+
+Other cities (Bordeaux, Nantes, Strasbourg, Montpellier, Lille…) did not publish an up-to-date
+worksite dataset on 2026-10-29. Open an issue if yours does.
 
 ## Troubleshooting
 
-The integration logs everything it does: check the integration logs from the
-Gladys UI (or `docker logs` on the host) with `LOG_LEVEL=debug` for the full
-detail.
+- **No zone in Discover**: tick a city and save; for the house zone, locate the house in Gladys.
+- **A street finds nothing**: try a shorter part of its name; the cities write them differently
+  ("Bd", "Boulevard"). Rennes describes places in a sentence, which the search also reads.
+- **"Last error" in Status**: the portal of the city did not answer; the last worksites are kept.
+- Logs: in the Docker container of the integration; `LOG_LEVEL=debug` shows every reading.
+
+## Limitations
+
+- Dates are the ones the cities publish, often planned: a worksite can start late or last longer.
+- Rennes only publishes the next 6 days; Tours only planned dates. A worksite whose dates are
+  inverted in the data is left out.
+- The point of a worksite is the centre of its shape: on a long street, the distance is approximate.
+- After a restart, a change of settings or of the house location, the triggers start again from what is there: what happened meanwhile is not fired. At most 50 events per pass, not retried if Gladys refuses them. A worksite that a portal drops then publishes again is seen as ended, then started.
+
+## Credits
+
+Data: Ville de Paris, Rennes Métropole and Ville d'Angers under the Open Database License (ODbL);
+Métropole de Lyon, Toulouse Métropole and Tours Métropole Val de Loire under the Licence Ouverte v2.0
+(Etalab). Integration by guim31, Apache-2.0.
